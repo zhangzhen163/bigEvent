@@ -95,7 +95,7 @@
                 </div>
                 <div class="form-group">
                   <label for="message-text" class="control-label">分类别名:</label>
-                  <input type="text" class="form-control" id="recipient-slug">
+                  <input type="text" class="form-control" id="recipient-name">
                 </div>
               </form>
             </div>
@@ -129,94 +129,6 @@
                 $('#addModal').modal('show');
               }
           })      
-      </script>
-    <!--1 网页一打开 先获取数据信息渲染到页面上,这里封装了一个函数调用的
-        2 点击表单下面新增按钮时出现新增页面,发送请求获取用户名
-        输入的信息,点击确定后 将用户输入的信息类别新增到原来的页面的
-        表单中
-     -->
-     <!-- 导入模板文件 -->
-     <script src='./js/template-web.js'></script>
-     <!-- 准备一个模板 -->
-     <script id='tmp_cate' type="text/html">
-        {{each data v}}
-        <tr>
-                <td>{{v.name}}</td>
-                <td>{{v.slug}}</td>
-                <td class="text-center">
-                    <a href="javascript:editTr({&quot;id&quot;:&quot;4&quot;,&quot;slug&quot;:&quot;travel&quot;,&quot;name&quot;:&quot;爱旅行&quot;});"
-                        class="btn btn-info btn-xs">编辑</a>
-                    <a href="javascript:deleteTr( 4 );" class="btn btn-danger btn-xs">删除</a>
-                </td>
-            </tr>
-
-         {{/each}}
-    
-    </script>
-    <script id='tem_cate1' type="text/html">
-    <tr>
-        <td>{{name}}</td>
-        <td>{{slug}}</td>
-        <td class="text-center">
-            <a href="javascript:editTr({&quot;id&quot;:&quot;1&quot;,&quot;slug&quot;:&quot;uncategorized&quot;,&quot;name&quot;:&quot;未分类&quot;});"
-                class="btn btn-info btn-xs">编辑</a>
-            <a href="javascript:deleteTr( 1 );" class="btn btn-danger btn-xs">删除</a>
-        </td>
-    </tr>
-    </script>
-      <script>
-          
-          // 入口函数
-      $(function(){
-          // 将页面一打开获取的页面信息 封装成函数,需要模板引擎
-        function getData(){
-            $.get({
-                url:'http://localhost:8000/admin/category_search',
-                success:function(backData){
-                    console.log(backData);
-                    if(backData.code==200){
-                        var html=template('tmp_cate',backData);
-                        $('tbody').html(html);
-                    }
-                }
-            })
-        }
-        getData(); 
-
-        // 给新增按钮加点击事件
-        $('#model_add').click(function(){
-            console.log(1);
-            var cateName=$('#recipient-name').val().trim();
-            var cateSlug=$('#recipient-slug').val().trim();
-            $.post({
-                url:'http://localhost:8000/admin/category_add',
-                data:{
-                    name:cateName,
-                    slug:cateSlug
-                },
-                success:function(backData){
-                    console.log(backData);
-                    // 直接操作dom树,给当前的dom树添加tr
-                    // 用到模板
-                
-                    if(backData.code==200){
-                        var obj={
-                        name:cateName,
-                        slug:cateSlug
-                    }
-                        var html2=template('tem_cate1',obj)
-                        $('tbody').append(html2);
-                    }
-
-                }
-            })
-            $('#addModal').modal('hide');
-        })
-      });
-     
-     
-      
-      
       </script>
 
 </body>
