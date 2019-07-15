@@ -79,6 +79,7 @@
             </table>
         </div>
     </div>
+    <!--  模态框 -->
 
     <div class="modal fade" id="addModal" >
         <div class="modal-dialog" role="document">
@@ -89,18 +90,20 @@
             </div>
             <div class="modal-body">
               <form>
+                  <!-- 加一个input 方便存id只不过不会显示给用户,用来开发 type='hidden'(将其隐藏)-->
+                  <input type="hidden" name='id' class="id">
                 <div class="form-group">
                   <label for="recipient-name" class="control-label">分类名称:</label>
-                  <input type="text" class="form-control" id="recipient-name">
+                  <input type="text" name='name' class="form-control name" id="recipient-name">
                 </div>
                 <div class="form-group">
                   <label for="message-text" class="control-label">分类别名:</label>
-                  <input type="text" class="form-control" id="recipient-name">
+                  <input type="text" name='slug' class="form-control slug" id="recipient-slug">
                 </div>
               </form>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-default" id="model_shutoff">关闭</button>
+              <button type="button" class="btn btn-default btnAddCate" id="model_shutoff">关闭</button>
               <button type="button" class="btn btn-primary" id="model_add">新增</button>
             </div>
           </div>
@@ -145,16 +148,14 @@
                 <td>{{v.name}}</td>
                 <td>{{v.slug}}</td>
                 <td class="text-center">
-                    <a href="javascript:editTr({&quot;id&quot;:&quot;4&quot;,&quot;slug&quot;:&quot;travel&quot;,&quot;name&quot;:&quot;爱旅行&quot;});"
-                        class="btn btn-info btn-xs">编辑</a>
-                    <a href="javascript:deleteTr( 4 );" class="btn btn-danger btn-xs">删除</a>
+                    <a href="#" data-id='{{v.id}}' class="btn btn-info btn-xs btn-edit">编辑</a>
+                    <a href="#" data-id='{{v.id}}' class="btn btn-danger btn-xs btn-delete">删除</a>
                 </td>
             </tr>
-
          {{/each}}
     
     </script>
-    <script id='tem_cate1' type="text/html">
+    <!-- <script id='tem_cate1' type="text/html">
     <tr>
         <td>{{name}}</td>
         <td>{{slug}}</td>
@@ -164,7 +165,9 @@
             <a href="javascript:deleteTr( 1 );" class="btn btn-danger btn-xs">删除</a>
         </td>
     </tr>
-    </script>
+    </script> 
+上面的遍历的是新增的tr,由于后面要用到删除,所以这种方法新增上去的无法删除
+-->
       <script>
           
           // 入口函数
@@ -182,10 +185,84 @@
                 }
             })
         }
+        // 需求:一进来页面就发送ajax请求,显示所有的文章类别
         getData(); 
 
+// 1 这里的新增分类和编辑按钮都会弹出同一个模态框,这里需要给模态框里的内容进行相应的编辑
+// 2  这里是给模态框的按钮设置点击事件,这里的模态框是同一个,所以需要区分,依据是要点击的按钮(修改或新增)
+// 区分是给编辑按钮加一个btn_success的类,新增没有
+
+// 给新增分类按钮加点击事件,给弹出的模态框进行有关新增信息方面编辑
+        $('.btnAddCate').on('click',function(){
+            $('#addModal .modal-title').html('新增分类');
+            $('#model_add').text('新增').removeClass('btn-success');
+        });
+
+// 给编辑按钮加点击事件,1 改变弹出的模态框的编辑内容,2 获取模态框里的要编辑的值
+
+$('tbody').on('click','.btn-edit',function(){
+    $('.modal-title').html('修改分类');
+    $('#model_add').text('修改').addClass('btn-success');
+    // 获取要编辑模态框的值,编辑时需要根据id才知道编辑哪一行,id也要获取;
+    // 这里给设置的自定义的id加在编辑按钮上,这里获取它的id,name.slug
+    var id=$(this).attr('data-id');
+    var slug=$(this).parent().prev().text();
+    var name=$(this).parent().prev().prev().text();
+    // 把获取的值显示在模态框对应的标签中
+    $('.modal-body .id').val(id);
+    $('.modal-body .name').val(name);
+    $('.modal-body .slug').val(slug);
+
+    $('#addModal').modal('show');
+});
         // 给新增按钮加点击事件
         $('#model_add').click(function(){
+            if($(this).hasClass('btn-success')){
+                // 接下来执行编辑功能
+                // 如果一个个获取比较麻烦,而后端提供的 接口没有formData(js提供的)参数
+                // 这里用的是jquery提供的serialize,和formData一样,需要给表单标签加name属性.
+                var data=$('.modal-body form').serialize();//返回的是拼接的字符串,参数间用&连接
+                $.post({
+                    url:'http://localhost:8000/admin/category_edit',
+                    // data:{
+                    //     id:id,
+                    //     name:name,
+                    //     slug:slug
+                    // }
+                    data:data,
+                    success:function(backData){
+                        if(backData.code==200){
+                            alert('修改成功!');
+                            getData();   // 调用网页一打开获取的信息,这里相当于自动刷新了页面
+
+                        }
+                    }
+                });
+            }else{
+                // 新增
+                var cateName=$('#recipient-name').val().trim();
+                var cateSlug=$('#recipient-slug').val().trim();
+                $.post({
+                    url:'http://localhost:8000/admin/category_add',
+                    data:{
+                        name:cateName,
+                        slug:cateSlug
+                    },
+                    success:function(backData){
+                        if(backData.code==200){
+                            //直接刷新location.reload();
+                            // 不刷新重新ajax请求显示一次
+                            getData();//这种的性能不高
+
+                        }
+                    }
+                });
+            }
+
+            // 隐藏模态框
+            $('#addModal').modal('hide');
+
+
             console.log(1);
             var cateName=$('#recipient-name').val().trim();
             var cateSlug=$('#recipient-slug').val().trim();
@@ -208,10 +285,31 @@
                         var html2=template('tem_cate1',obj)
                         $('tbody').append(html2);
                     }
-
                 }
             })
             $('#addModal').modal('hide');
+        });
+
+        // 删除文章分类
+        $('tbody').on('click','.btn-delete',function(e){
+            e.preventDefault();
+            if(confirm('确定要删除吗?')){
+                var that=$(this);// 将删除按钮的this保存下,接收数据里面还用;
+                // 需要根据id删除,在这需要获取(请求参数是id)
+                var cateId=$(this).attr('data-id');
+                $.ajax({
+                    type:'post',
+                    url:'http://localhost:8000/admin/category_delete',
+                    data:{
+                        id:cateId
+                    },
+                    success:function(backData){
+                        if(backData.code==200){
+                            that.parents('tr').remove();
+                        }
+                    }
+                });
+            }
         })
       });
      
