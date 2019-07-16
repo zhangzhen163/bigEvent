@@ -125,7 +125,7 @@
     $.get({
         url:'http://localhost:8000/admin/getuser',
         success:function(backData){
-            // console.log(backData);
+            console.log(backData);
             if(backData.code==200){
                 $('.user_info').children('span').html('欢迎&nbsp;&nbsp;'+backData.data.nickname);
                 $('.user_info').children('img').attr('src',backData.data.user_pic);
