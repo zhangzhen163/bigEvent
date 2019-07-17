@@ -208,30 +208,21 @@
                             <a href="javascript:deleteTr( 998 );" class="btn btn-danger btn-xs">删除</a>
                         </td>
                     </tr>
-
-
-
                     <tr>
 
                         <td>组方些</td>
                         <td>肉丝</td>
                         <td>会生活</td>
                         <td class="text-center">2017-02-08 05:38:43</td>
-
-
                         <td class="text-center">草稿</td>
-
 
                         <td class="text-center">
                             <a href="post-edit.html?id=996" class="btn btn-default btn-xs">编辑</a>
-                            <a href="javascript:deleteTr( 996 );" class="btn btn-danger btn-xs">删除</a>
+                            <a href="#" data-id='{{v.id}}' class="btn btn-danger btn-xs btn-delete">删除</a>
                         </td>
                     </tr>
 
-
-
                     <tr>
-
                         <td>日做发光成</td>
                         <td>管理员</td>
                         <td>爱旅行</td>
@@ -246,7 +237,6 @@
                             <a href="javascript:deleteTr( 995 );" class="btn btn-danger btn-xs">删除</a>
                         </td>
                     </tr>
-
 
                 </tbody>
             </table>
@@ -287,8 +277,8 @@
             <td class="text-center">{{v.date}}</td>
             <td class="text-center">{{v.state}}</td>
          <td class="text-center">
-                <a href="article_edit.html" class="btn btn-default btn-xs">编辑</a>
-                <a href="#" data-id='{{v.id}}' class="btn btn-danger btn-xs">删除</a>
+                <a href="article_edit.html?id={{v.id}}" class="btn btn-default btn-xs btn-edit">编辑</a>
+                <a href="#" data-id='{{v.id}}' class="btn btn-danger btn-xs btn-delete">删除</a>
             </td>
         </tr>
     {{/each}}
@@ -298,7 +288,6 @@
         $('#release_btn').click(function () {
             window.parent.setMenu(1, 1);
         });
-
         $(function () {
             //  获取所有的文章类别,显示在下拉列表表单中
             $.get({
@@ -319,6 +308,7 @@
             //         $('#page-content').text('Page ' + page);
             //     }
             // });
+
             // 下面的是将上面的拆分成三句话
             var $pagination = $('.pagination');
             var defaultOpts = {
@@ -350,7 +340,7 @@
             //     }
             // });
                 // 声明一个变量来存最大页数
-                var myTotalPage;
+                var myTotalPage=10;
 
             //发送请求查询相应页数的文章,显示在页面上
             // 将其封装成函数,在点击页码的时候也会触发这个事件
@@ -371,10 +361,13 @@
                             var html = template('art_list', backData);
                             $('tbody').html(html);
                             // 每次选择的不一样,内容页数也不一样,所以需要每次获取新的
-                            var totalPages = backData.newTotalPages;// 获取的最大的页码数
+                            var totalPages = backData.totalPage;// 获取的最大的页码数
+                            //获取当前页,不能在判断条件里,需要暴露出去,
+                            window.currentPage = $pagination.twbsPagination('getCurrentPage');
+                            // 其中有一个问题,分页插件调用destroy方法 的时候,会自动的去调用onpageClick事件,所以就无限循环了
                             //这里判断的是如果最大页码数和当前的页数不相等,那就要获取总页数给里面声明的变量
-                            if(myTotalPage !=totalPages){
-                                var currentPage = $pagination.twbsPagination('getCurrentPage');
+                            if(myTotalPage !=totalPages){                          
+                                myTotalPage=totalPages
                             $pagination.twbsPagination('destroy');
                             $pagination.twbsPagination($.extend({}, defaultOpts, {
                                 startPage: 1,// 让每次筛选内容不同时从1开始
@@ -394,8 +387,10 @@
             // 点击筛选选出所有的符合条件的文章,并将当前页码数显示为1
             $('#btnSearch').on('click', function (e) {
                 e.preventDefault();
-                // 调用页面一打开出现内容 的方法
-                getData(1);
+                // 触发分页条码的首页按钮的点击事件,防止在其他页面进行操作不能跳到第一页
+                $('.page-link').trigger('click');
+                // 调用页面一打开出现页面1内容 的方法
+                getData(1); 
             });
 
             // // 一进到文章列表页面,就显示所有的文章
@@ -420,6 +415,26 @@
             //         getData(page);
             //     }
             // });
+            
+            // 在文章列表中删除文章,给按钮们委托注册事件
+            $('tbody').on('click','.btn-delete',function(){
+                var that=$(this);// 接收数据时函数里this指向改变
+                if(confirm('确定要删除吗?')){
+                    var id=$(this).attr('data-id');
+                    $.get({
+                        url:'http://localhost:8000/admin/article_delete',
+                        data:{
+                            id:id
+                        },
+                        success:function(backData){
+                            if(backData.code==200){
+                                that.parents('tr').remove();
+                            }
+                        }
+                    });
+                }
+            });
+
 
 
 

@@ -40,12 +40,9 @@
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章类别：</label>
                     <div class="col-sm-4">
-                        <select class="form-control">
-                            <option>类别一</option>
-                            <option>类别二</option>
-                            <option>类别三</option>
-                            <option selected>类别四</option>
-                            <option>类别五</option>
+                        <select class="form-control article_type">
+                            <option value="1">科学</option>
+                            <option value="8">军事</option>
                         </select>
                     </div>
                 </div>
@@ -77,7 +74,31 @@
             </form>
         </div>
     </div>
+    <script src="./js/template-web.js"></script>
+    <script id='art_cate' type="text/html">
+    {{each data v}}
+        <option value="{{v.id}}">{{v.name}}</option>
+    {{/each}}
+    </script>
+    <script>
+    $(function(){
+        $.get({
+            url:'http://localhost:8000/admin/category_search',
+            success:function(backData){
+                if(backData.code==200){                 
+                    var html=template('art_cate',backData);
+                    
+                  
+                }
+            }
 
+
+        });
+    });
+    
+    
+    
+    </script>
 </body>
 
 </html>
