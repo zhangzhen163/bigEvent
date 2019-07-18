@@ -428,7 +428,7 @@
                         },
                         success:function(backData){
                             if(backData.code==200){
-                                that.parents('tr').remove();
+                               getData(currentPage);
                             }
                         }
                     });
