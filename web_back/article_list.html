@@ -243,7 +243,7 @@
 
             <div class="row text-center">
                 <ul class="pagination pagination-sm">
-                    <li class="page-item first disabled"><a href="#" class="page-link">首页</a></li>
+                    <li class="page-item first disabled"><a href="#" class="page-link page-link1">首页</a></li>
                     <li class="page-item prev disabled"><a href="#" class="page-link">上一页</a></li>
                     <li class="page-item active"><a href="#" class="page-link">1</a></li>
                     <li class="page-item"><a href="#" class="page-link">2</a></li>
@@ -308,11 +308,12 @@
             //         $('#page-content').text('Page ' + page);
             //     }
             // });
-
+             // 声明一个变量来存最大页数
+            var myTotalPage=10;
             // 下面的是将上面的拆分成三句话
             var $pagination = $('.pagination');
             var defaultOpts = {
-                totalPages: 20,// 最大的页签数
+                totalPages: myTotalPage,// 最大的页签数
                 visiblePages: 5,//最大的可见页签数
                 first: '首页',
                 last: '尾页',
@@ -321,7 +322,7 @@
                 // 点击按钮触发的事件
                 onPageClick: function (event, page) {
                     // event 代表点击时触发的事件; page代表点击的页码
-                    getData(page);// 点击时调用getData()使点击的那一页那一页的内容显示
+                    getData(page);// 点击时调用getData()使点击的那一页的内容显示
 
                 }
             };
@@ -339,9 +340,7 @@
             //         }));
             //     }
             // });
-                // 声明一个变量来存最大页数
-                var myTotalPage=10;
-
+               
             //发送请求查询相应页数的文章,显示在页面上
             // 将其封装成函数,在点击页码的时候也会触发这个事件
             function getData(myPage) {
@@ -382,15 +381,18 @@
                 });
             }
 
-
-
+            $('.page-link1').on('click',function(e){
+                e.preventDefault();
+                getData(1);
+            })
+    
             // 点击筛选选出所有的符合条件的文章,并将当前页码数显示为1
             $('#btnSearch').on('click', function (e) {
                 e.preventDefault();
                 // 触发分页条码的首页按钮的点击事件,防止在其他页面进行操作不能跳到第一页
-                $('.page-link').trigger('click');
+                $('.page-link1').trigger('click');
                 // 调用页面一打开出现页面1内容 的方法
-                getData(1); 
+                // getData(1); 
             });
 
             // // 一进到文章列表页面,就显示所有的文章
@@ -419,8 +421,9 @@
             // 在文章列表中删除文章,给按钮们委托注册事件
             $('tbody').on('click','.btn-delete',function(){
                 var that=$(this);// 接收数据时函数里this指向改变
+                var id=$(this).attr('data-id');
+                   console.log(id);
                 if(confirm('确定要删除吗?')){
-                    var id=$(this).attr('data-id');
                     $.get({
                         url:'http://localhost:8000/admin/article_delete',
                         data:{
